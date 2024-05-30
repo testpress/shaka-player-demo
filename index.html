@@ -33,8 +33,6 @@
     <h2>TPSTREAMS DRM</h2>
     <div class="media">
       <video id="video" controls autoplay muted></video>
-      <br />
-      <button onclick="load()">Load Video</button>
     </div>
   </div>
 
@@ -76,17 +74,17 @@
       location.appendChild(scriptTag);
     };
 
-    const yourCodeToBeCalled = function () {
-      //your code goes here
+    const onSetupCompletion = function () {
+      load()
     }
 
 
     document.addEventListener('DOMContentLoaded', function () {
       const browserName = getBrowserName(navigator.userAgent);
       if (browserName === 'Safari') {
-        loadJS('fairplay.js', yourCodeToBeCalled, document.body);
+        loadJS('fairplay.js', onSetupCompletion, document.body);
       } else {
-        loadJS('widevine.js', yourCodeToBeCalled, document.body);
+        loadJS('widevine.js', onSetupCompletion, document.body);
       }
     });
   </script>
