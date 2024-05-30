@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.8.8/shaka-player.compiled.min.js"></script>
+  <script src="dist/shaka_player/4.8.8/shaka-player.compiled.debug.min.js"></script>
   <style>
     .container {
       display: flex;
@@ -19,21 +19,87 @@
       align-items: flex-end;
       flex-direction: column;
       width: 100%;
+      margin-bottom: 10px;
     }
 
     .media video {
       width: 100%;
     }
 
+    #progress-bar {
+        width: 100%;
+        height: 20px;
+        appearance: none;
+    }
+
+    #progress-bar::-webkit-progress-bar {
+        background-color: #f3f3f3;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    #progress-bar::-webkit-progress-value {
+        background-color: #4caf50;
+        border-radius: 5px;
+    }
+
+    #download-button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-left: 10px;
+    }
+
+    #download-button:hover {
+        background-color: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f4f4f4;
+        color: #333;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
     <h2>TPSTREAMS DRM</h2>
+    <div id='online-signal' style='width:100%;text-align:center'></div>
     <div class="media">
       <video id="video" controls autoplay muted></video>
     </div>
+    
+    <div>
+      <span><progress id="progress-bar" value="0" max="100"></span>
+      <span><button id="download-button">Download</button></span>
+    </div>
+    <table id="content-table" style="width:100%"></table>
   </div>
 
   <script>
@@ -75,7 +141,11 @@
     };
 
     const onSetupCompletion = function () {
-      load()
+      if (!navigator.onLine){
+        window.addEventListener('online',  load);
+      } else {
+        load()
+      }
     }
 
 
