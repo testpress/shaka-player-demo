@@ -8,6 +8,8 @@ var licenseURL;
 function setUp() {
   // Install built-in polyfills to patch browser incompatibilities.
   shaka.polyfill.installAll();
+  shaka.polyfill.PatchedMediaKeysApple.install();
+
   // Check to see if the browser supports the basic APIs Shaka needs.
   if (shaka.Player.isBrowserSupported()) {
     setupPlayer();
@@ -27,7 +29,7 @@ function setupPlayer() {
 
   player.getNetworkingEngine().registerRequestFilter(function (type, request) {
     if (type == shaka.net.NetworkingEngine.RequestType.LICENSE) {
-      request.uris = [licenseURL];
+      request.uris = [FAIRPLAY_STAGE];
       request.method = 'POST';
       request.headers['Content-Type'] = 'application/json';
       const originalPayload = new Uint8Array(request.body);
@@ -74,7 +76,7 @@ async function load() {
   player.configure('drm.initDataTransform', (initData, type, drmInfo) => {
     if (type != 'skd') return initData;
     const skdURL = shaka.util.StringUtils.fromBytesAutoDetect(initData);
-    const contentId = new URL(skdURL).searchParams.get('assetId');
+    const contentId = new TextDecoder("utf-16").decode(initData.slice(16));
     const cert = player.drmInfo().serverCertificate;
     licenseURL = skdURL.replace('skd://', 'https://');
     return shaka.util.FairPlayUtils.initDataTransform(
