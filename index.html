@@ -3,6 +3,7 @@
 
 <head>
   <script src="dist/shaka_player/4.8.8/shaka-player.compiled.debug.min.js"></script>
+  <script src="offline_download_util.js"></script>
   <style>
     .container {
       display: flex;
@@ -71,6 +72,10 @@
   </div>
 
   <script>
+    var WIDEVINE_LICENSE_URL = 'https://app.tpstreams.com/api/v1/6eafqn/assets/8eaHZjXt6km/drm_license/?access_token=16b608ba-9979-45a0-94fb-b27c1a86b3c1'
+    var FAIRPLAY_LICENSE_URL =
+  'https://app.tpstreams.com/api/v1/6eafqn/assets/8eaHZjXt6km/drm_license/?access_token=16b608ba-9979-45a0-94fb-b27c1a86b3c1&drm_type=fairplay';
+
     const getBrowserName = (userAgent) => {
       let browserName;
 
@@ -114,6 +119,19 @@
       } else {
         load()
       }
+
+      setUpOfflineDownload()
+    }
+
+    const setUpOfflineDownload = function () {
+      initStorage();
+
+      const downloadButton = document.getElementById('download-button');
+      downloadButton.onclick = onDownloadClick;
+
+      // Update the content list to show what items we initially have
+      // stored offline.
+      refreshContentList();
     }
 
 
