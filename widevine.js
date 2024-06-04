@@ -1,5 +1,4 @@
-var DASH_URL = 'https://d384padtbeqfgy.cloudfront.net/transcoded/8eaHZjXt6km/video.mpd';
-var WIDEVINE_LICENSE_URL = 'https://app.tpstreams.com/api/v1/6eafqn/assets/8eaHZjXt6km/drm_license/?access_token=16b608ba-9979-45a0-94fb-b27c1a86b3c1'
+window.manifestURL = 'https://d384padtbeqfgy.cloudfront.net/transcoded/8eaHZjXt6km/video.mpd';
 
 function setUp() {
   // Install built-in polyfills to patch browser incompatibilities.
@@ -10,6 +9,12 @@ function setUp() {
   } else {
     console.error('The Browser, you are using does not support Shaka Player!');
   }
+
+  // Update the online status and add listeners so that we can visualize
+  // our network state to the user.
+  updateOnlineStatus();
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
 }
 
 function setupPlayer() {
@@ -31,6 +36,7 @@ function setupPlayer() {
 
   player.getNetworkingEngine().registerRequestFilter(function (type, request) {
     if (type == shaka.net.NetworkingEngine.RequestType.LICENSE) {
+      console.log("Player license interceptor")
       request.headers['Content-type'] = 'application/octet-stream';
     }
   });
@@ -40,7 +46,7 @@ async function load() {
   // Try to load a manifest.
   // This is an asynchronous process.
   try {
-    await window.player.load(DASH_URL);
+    await window.player.load(window.manifestURL);
     // This runs if the asynchronous load is successful.
     console.log('The video has now been loaded!');
   } catch (exception) {

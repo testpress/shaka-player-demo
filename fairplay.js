@@ -1,9 +1,6 @@
-var DASH_URL = 'https://d384padtbeqfgy.cloudfront.net/transcoded/8eaHZjXt6km/video.m3u8';
+window.manifestURL = 'https://d384padtbeqfgy.cloudfront.net/transcoded/8eaHZjXt6km/video.m3u8';
 var CERTIFICATE_PATH = 'https://static.testpress.in/static/fairplay.cer';
-var FAIRPLAY_STAGE =
-  'https://app.tpstreams.com/api/v1/6eafqn/assets/8eaHZjXt6km/drm_license/?access_token=16b608ba-9979-45a0-94fb-b27c1a86b3c1&drm_type=fairplay';
 
-var licenseURL;
 
 function setUp() {
   // Install built-in polyfills to patch browser incompatibilities.
@@ -29,7 +26,7 @@ function setupPlayer() {
 
   player.getNetworkingEngine().registerRequestFilter(function (type, request) {
     if (type == shaka.net.NetworkingEngine.RequestType.LICENSE) {
-      request.uris = [FAIRPLAY_STAGE];
+      request.uris = [FAIRPLAY_LICENSE_URL];
       request.method = 'POST';
       request.headers['Content-Type'] = 'application/json';
       const originalPayload = new Uint8Array(request.body);
@@ -64,7 +61,7 @@ async function load() {
   player.configure({
     drm: {
       servers: {
-        'com.apple.fps.1_0': FAIRPLAY_STAGE,
+        'com.apple.fps.1_0': FAIRPLAY_LICENSE_URL,
       },
       advanced: {
         'com.apple.fps.1_0': {
@@ -75,10 +72,8 @@ async function load() {
   });
   player.configure('drm.initDataTransform', (initData, type, drmInfo) => {
     if (type != 'skd') return initData;
-    const skdURL = shaka.util.StringUtils.fromBytesAutoDetect(initData);
     const contentId = new TextDecoder("utf-16").decode(initData.slice(16));
     const cert = player.drmInfo().serverCertificate;
-    licenseURL = skdURL.replace('skd://', 'https://');
     return shaka.util.FairPlayUtils.initDataTransform(
       initData,
       contentId,
@@ -87,7 +82,7 @@ async function load() {
   });
 
   try {
-    await player.load(DASH_URL);
+    await player.load(window.manifestURL);
     console.log('The video has now been loaded!');
   } catch (exception) {
     onError(exception);

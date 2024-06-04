@@ -2,7 +2,8 @@
 <html>
 
 <head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.8.8/shaka-player.compiled.min.js"></script>
+  <script src="dist/shaka_player/4.8.8/shaka-player.compiled.debug.min.js"></script>
+  <script src="offline_download_util.js"></script>
   <style>
     .container {
       display: flex;
@@ -19,24 +20,62 @@
       align-items: flex-end;
       flex-direction: column;
       width: 100%;
+      margin-bottom: 10px;
     }
 
     .media video {
       width: 100%;
     }
 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f4f4f4;
+        color: #333;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
     <h2>TPSTREAMS DRM</h2>
+    <div id='online-signal' style='width:100%;text-align:center'></div>
     <div class="media">
       <video id="video" controls autoplay muted></video>
     </div>
+    
+    <div>
+      <span><progress id="progress-bar" value="0" max="100"></span>
+      <span><button id="download-button">Download</button></span>
+    </div>
+    <table id="content-table" style="width:100%"></table>
   </div>
 
   <script>
+    var WIDEVINE_LICENSE_URL = 'https://app.tpstreams.com/api/v1/6eafqn/assets/8eaHZjXt6km/drm_license/?access_token=16b608ba-9979-45a0-94fb-b27c1a86b3c1'
+    var FAIRPLAY_LICENSE_URL =
+  'https://app.tpstreams.com/api/v1/6eafqn/assets/8eaHZjXt6km/drm_license/?access_token=16b608ba-9979-45a0-94fb-b27c1a86b3c1&drm_type=fairplay';
+
     const getBrowserName = (userAgent) => {
       let browserName;
 
@@ -75,7 +114,24 @@
     };
 
     const onSetupCompletion = function () {
-      load()
+      if (!navigator.onLine){
+        window.addEventListener('online',  load);
+      } else {
+        load()
+      }
+
+      setUpOfflineDownload()
+    }
+
+    const setUpOfflineDownload = function () {
+      initStorage();
+
+      const downloadButton = document.getElementById('download-button');
+      downloadButton.onclick = onDownloadClick;
+
+      // Update the content list to show what items we initially have
+      // stored offline.
+      refreshContentList();
     }
 
 
